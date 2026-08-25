@@ -43,29 +43,29 @@ CHARACTERS_DIR = os.path.join(SCRIPT_DIR, "personnages")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
 
 CHARACTERS = [
-    {"name": "Luke Skywalker", "file": "luke.png"},
-    {"name": "Han Solo", "file": "Han.png"},
-    {"name": "Chewbacca", "file": "Chewy.png"},
-    {"name": "Dark Vador", "file": "Darth Vader.png"},
-    {"name": "Yoda", "file": "yoda.png"},
-    {"name": "C-3PO", "file": "C3p0.png"},
-    {"name": "R2-D2", "file": "r2d2.png"},
-    {"name": "BB-8", "file": "BB8.png"},
+    {"name": "Luke Skywalker", "file": "luke.png", "description": "a young blond man in a white tunic and black pants, hero adventurer look"},
+    {"name": "Han Solo", "file": "Han.png", "description": "a man in a white shirt open at collar, black vest, dark pants, charming rogue look"},
+    {"name": "Chewbacca", "file": "Chewy.png", "description": "a very tall furry creature covered in brown fur, gentle giant"},
+    {"name": "Dark Vador", "file": "Darth Vader.png", "description": "a tall menacing figure in full black armor with a black helmet and cape"},
+    {"name": "Yoda", "file": "yoda.png", "description": "a small green creature with big ears, wise elder, walks with a cane"},
+    {"name": "C-3PO", "file": "C3p0.png", "description": "a golden humanoid robot with mechanical joints, always upright and proper"},
+    {"name": "R2-D2", "file": "r2d2.png", "description": "a small cylindrical robot, blue and white, dome-shaped head, no arms"},
+    {"name": "BB-8", "file": "BB8.png", "description": "a small spherical robot, white and orange, round head on top of a ball body"},
 ]
 
 PROMPTS = {
     "realiste": (
         "Create a single photorealistic cinematic image of two characters standing side by side. "
-        "Character A: use the costumed character from Photo 1 exactly as shown, preserve all visual details. "
-        "Character B: use the person from Photo 2 - same face, hair, skin tone, glasses, beard - but dressed as a space opera astronaut in a sleek futuristic spacesuit, helmet held under one arm so their face is fully visible. "
+        "Character A is a sci-fi character: {description}. Draw this character from imagination. "
+        "Character B comes from the photo: use this person exactly - same face, hair, skin tone, glasses, beard - dressed as a space opera astronaut in a sleek futuristic spacesuit, helmet held under one arm so their face is fully visible. "
         "Both characters same height, looking at camera, Character B on left, Character A on right. "
         "Background: sci-fi hangar with grey metal panels and blue-white lighting. "
         "Style: cinematic, sharp, movie-quality photo."
     ),
     "cartoon": (
         "Create a single Pixar/Disney 3D animated image. Everything must be cartoon style, zero photorealism. "
-        "Character A: convert the costumed character from Photo 1 to Pixar 3D style, preserve all visual details. "
-        "Character B: convert the person from Photo 2 to Pixar 3D style - faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone - dressed as a space opera astronaut in a colorful futuristic spacesuit, helmet held under one arm, face fully visible. They must be immediately recognizable. "
+        "Character A is a sci-fi character: {description}. Draw this character in Pixar 3D style from imagination. "
+        "Character B comes from the photo: convert this person to Pixar 3D style - faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone - dressed as a space opera astronaut in a colorful futuristic spacesuit, helmet held under one arm, face fully visible. They must be immediately recognizable. "
         "Scene: Character A holds a phone taking a selfie with Character B, arm extended with phone visible at top of frame. "
         "Both same height, Character B on left, Character A on right, both smiling toward the phone camera. "
         "Background: sci-fi space station interior, Pixar style. "
@@ -474,14 +474,7 @@ class SelfieApp:
         if not GEMINI_API_KEY or GEMINI_API_KEY == "VOTRE_CLE_API_ICI":
             raise Exception("Cle API Gemini non configuree. Faites: export GEMINI_API_KEY=votre_cle")
 
-        # Redimensionner les images avant encodage pour reduire la taille de la requete
-        char_img = self.character_images[char_idx].copy()
-        char_img.thumbnail((768, 768), Image.LANCZOS)
-        char_buffer = io.BytesIO()
-        char_img.save(char_buffer, format="JPEG", quality=85)
-        char_b64 = base64.b64encode(char_buffer.getvalue()).decode("utf-8")
-        log.info(f"Image personnage: {len(char_b64)} chars")
-
+        # Envoyer seulement la photo du visiteur - le personnage est decrit en texte
         user_img = self.captured_photo.copy()
         user_img.thumbnail((768, 768), Image.LANCZOS)
         user_buffer = io.BytesIO()
@@ -489,13 +482,12 @@ class SelfieApp:
         user_b64 = base64.b64encode(user_buffer.getvalue()).decode("utf-8")
         log.info(f"Photo visiteur: {len(user_b64)} chars")
 
-        prompt = PROMPTS[style]
+        prompt = PROMPTS[style].format(description=character["description"])
         log.info(f"Envoi requete vers Gemini...")
 
         request_body = {
             "contents": [{
                 "parts": [
-                    {"inline_data": {"mime_type": "image/jpeg", "data": char_b64}},
                     {"inline_data": {"mime_type": "image/jpeg", "data": user_b64}},
                     {"text": prompt}
                 ]
