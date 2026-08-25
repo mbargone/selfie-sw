@@ -56,21 +56,19 @@ CHARACTERS = [
 PROMPTS = {
     "realiste": (
         "Create a single photorealistic cinematic image of two characters standing side by side. "
-        "Character A comes from Photo 1: use this Star Wars character named {name} exactly as shown. "
-        "Character B comes from Photo 2: recreate this person exactly - same face, hair, skin tone, glasses, beard. "
-        "Character B is wearing Imperial Stormtrooper white armor with helmet held under one arm, face fully visible. "
-        "Both characters same height, looking at camera, visitor on left, character on right. "
-        "Background: Imperial Star Destroyer hangar, grey panels, blue-white lighting. "
-        "Style: cinematic, sharp, movie-quality."
+        "Character A: use the costumed character from Photo 1 exactly as shown, preserve all visual details. "
+        "Character B: use the person from Photo 2 exactly as shown - same face, hair, skin tone, glasses, beard. "
+        "Both characters same height, looking at camera, Character B on left, Character A on right. "
+        "Background: sci-fi hangar with grey metal panels and blue-white lighting. "
+        "Style: cinematic, sharp, movie-quality photo."
     ),
     "cartoon": (
         "Create a single Pixar/Disney 3D animated image. Everything must be cartoon style, zero photorealism. "
-        "Character A comes from Photo 1: convert this Star Wars character named {name} to Pixar 3D style. "
-        "Character B comes from Photo 2: convert this person to Pixar 3D style, faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone. They must be immediately recognizable. "
-        "Character B wears Stormtrooper white armor with helmet held under arm, face visible. "
-        "Scene: Character A holds a phone taking a selfie with Character B, arm extended with phone visible at top. "
-        "Both same height, Character B on left, Character A on right, both smiling. "
-        "Background: Imperial Star Destroyer interior, Pixar style. "
+        "Character A: convert the costumed character from Photo 1 to Pixar 3D style, preserve all visual details. "
+        "Character B: convert the person from Photo 2 to Pixar 3D style, faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone. They must be immediately recognizable. "
+        "Scene: Character A holds a phone taking a selfie with Character B, arm extended with phone visible at top of frame. "
+        "Both same height, Character B on left, Character A on right, both smiling toward the phone camera. "
+        "Background: sci-fi space station interior, Pixar style. "
         "Style: exaggerated Pixar proportions, big heads, big eyes, vibrant colors, zero photorealism."
     ),
     "polaroid": None
@@ -491,7 +489,7 @@ class SelfieApp:
         user_b64 = base64.b64encode(user_buffer.getvalue()).decode("utf-8")
         log.info(f"Photo visiteur: {len(user_b64)} chars")
 
-        prompt = PROMPTS[style].format(name=character["name"])
+        prompt = PROMPTS[style]
         log.info(f"Envoi requete vers Gemini...")
 
         request_body = {
