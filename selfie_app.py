@@ -57,7 +57,7 @@ PROMPTS = {
     "realiste": (
         "Create a single photorealistic cinematic image of two characters standing side by side. "
         "Character A: use the costumed character from Photo 1 exactly as shown, preserve all visual details. "
-        "Character B: use the person from Photo 2 exactly as shown - same face, hair, skin tone, glasses, beard. "
+        "Character B: use the person from Photo 2 - same face, hair, skin tone, glasses, beard - but dressed as a space opera astronaut in a sleek futuristic spacesuit, helmet held under one arm so their face is fully visible. "
         "Both characters same height, looking at camera, Character B on left, Character A on right. "
         "Background: sci-fi hangar with grey metal panels and blue-white lighting. "
         "Style: cinematic, sharp, movie-quality photo."
@@ -65,7 +65,7 @@ PROMPTS = {
     "cartoon": (
         "Create a single Pixar/Disney 3D animated image. Everything must be cartoon style, zero photorealism. "
         "Character A: convert the costumed character from Photo 1 to Pixar 3D style, preserve all visual details. "
-        "Character B: convert the person from Photo 2 to Pixar 3D style, faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone. They must be immediately recognizable. "
+        "Character B: convert the person from Photo 2 to Pixar 3D style - faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone - dressed as a space opera astronaut in a colorful futuristic spacesuit, helmet held under one arm, face fully visible. They must be immediately recognizable. "
         "Scene: Character A holds a phone taking a selfie with Character B, arm extended with phone visible at top of frame. "
         "Both same height, Character B on left, Character A on right, both smiling toward the phone camera. "
         "Background: sci-fi space station interior, Pixar style. "
