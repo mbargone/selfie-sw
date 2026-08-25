@@ -44,31 +44,28 @@ CHARACTERS = [
 
 PROMPTS = {
     "realiste": (
-        "I have two photos. "
-        "Photo 1 is a Star Wars character named {name}. "
-        "Photo 2 is a visitor at a Star Wars fan event. "
-        "Create a single photorealistic, cinematic image showing both people standing side by side, as if posing for a photo together. "
-        "SCALE: Both people must be the SAME height and scale in the final image - match the visitor's size to the character's size from Photo 1. "
-        "FACE: Preserve EXACTLY the visitor's face, facial features, hair color, hairstyle, glasses, beard, and skin tone from Photo 2. Do NOT alter the face or hair in any way. The visitor's head must be bare and fully visible - do NOT cover their face. "
-        "OUTFIT: Dress the visitor as an Imperial Stormtrooper wearing the iconic white plastoid armor over a black bodysuit. IMPORTANT: the visitor is NOT wearing the helmet on their head - instead they hold the white Stormtrooper helmet tucked under one arm, so their real face stays fully visible. The armor should look authentic, glossy white, battle-worn but clean. "
-        "Preserve EXACTLY the character appearance from Photo 1. "
-        "Both people should be looking at the camera with a confident pose. "
-        "Background: interior of an Imperial Star Destroyer or a hangar bay with sleek grey panels, subtle blue and white lighting, and a sci-fi atmosphere. "
-        "Style: professional cinematic photography, sharp and well-lit, movie-quality. "
-        "The visitor is on the left, the character is on the right."
+        "Two photos provided. "
+        "Photo 1: Star Wars character {name}. "
+        "Photo 2: a visitor (real person). "
+        "Generate a photorealistic cinematic image of both people side by side, posing together. "
+        "Visitor (Photo 2): preserve face, hair, glasses, beard, skin tone exactly. "
+        "Dress visitor as an Imperial Stormtrooper in white armor, helmet held under one arm, face fully visible. "
+        "Character (Photo 1): keep appearance exactly as shown. "
+        "Both same height, looking at camera. Visitor on left, character on right. "
+        "Background: Imperial Star Destroyer hangar, grey panels, blue-white sci-fi lighting. "
+        "Style: cinematic, sharp, movie-quality."
     ),
     "cartoon": (
-        "I have two photos. "
-        "Photo 1 is a Star Wars character named {name}. "
-        "Photo 2 is a real person (a visitor). "
-        "Create a single image ENTIRELY in Pixar/Disney 3D animation style. EVERYTHING must be in this style - the people, the armor, the background, the objects, the lighting. Nothing should look photorealistic. "
-        "SCENE: The character (from Photo 1) is holding a phone up in the air with one arm extended, taking a selfie with the visitor (from Photo 2). They are standing close together in a Star Wars setting. The character's arm and phone are visible in the upper part of the image. "
-        "VISITOR (from Photo 2): Convert into Pixar 3D style but FAITHFULLY preserve their identity. CRITICAL features to match exactly: hair color, hairstyle, hair length, baldness pattern, facial hair (beard, mustache, goatee - exact shape and color), glasses (exact frame style and color), skin tone, eye color. The person MUST immediately recognize themselves. Dress the visitor as an Imperial Stormtrooper in white plastoid armor over a black bodysuit, but they are NOT wearing the helmet on their head - instead they hold the white Stormtrooper helmet tucked under one arm so their real face stays fully visible. Make them look flattering - slim the body slightly, confident posture - but the face and hair must be a faithful cartoon portrait of the real person. Do NOT change hair color, do NOT remove glasses, do NOT alter facial hair, do NOT cover their face with the helmet. "
-        "CHARACTER (from Photo 1): Convert into the same Pixar 3D style while keeping their recognizable features and clothing. They are the one holding the phone for the selfie. "
-        "SCALE: Both people are the same height, standing side by side. "
-        "BACKGROUND: Interior of an Imperial Star Destroyer or hangar bay with sleek grey panels and blue-white sci-fi lighting - ALL rendered in Pixar 3D animated style. "
-        "Both people are smiling and looking toward the phone camera. The visitor is on the left, the character holding the phone is on the right. "
-        "STYLE: HEAVILY stylized Pixar 3D animation. Exaggerated cartoon proportions - bigger heads, bigger eyes, rounder faces, smaller bodies. Smooth plastic-like skin with NO pores or texture. Very saturated vibrant colors. Strong rim lighting. Thick eyebrows, big smiles. Like characters from Inside Out or Up. Push the cartoon look as far as possible while keeping people recognizable. ZERO photorealism."
+        "Two photos provided. "
+        "Photo 1: Star Wars character {name}. "
+        "Photo 2: a visitor (real person). "
+        "Generate a single image in Pixar/Disney 3D animation style. Everything must be cartoon - no photorealism. "
+        "Scene: character (Photo 1) holds a phone taking a selfie with the visitor (Photo 2), arm extended with phone visible. "
+        "Visitor (Photo 2): Pixar 3D style, faithfully preserve hair color, hairstyle, baldness, facial hair, glasses, skin tone, eye color. "
+        "Dress visitor as Stormtrooper, helmet held under arm, face visible. Flattering but recognizable. "
+        "Character (Photo 1): same Pixar style, holding the phone. Both same height, visitor left, character right. "
+        "Background: Imperial Star Destroyer interior, Pixar style. "
+        "Style: exaggerated Pixar proportions, big heads, big eyes, vibrant colors, zero photorealism."
     ),
     "polaroid": None
 }
@@ -388,12 +385,13 @@ class SelfieApp:
         for attempt in range(1, max_retries + 1):
             try:
                 if attempt > 1:
-                    self.root.after(0, lambda a=attempt: self.loading_label.configure(
+                    wait = 2 ** attempt  # backoff exponentiel: 4s, 8s
+                    self.root.after(0, lambda a=attempt, w=wait: self.loading_label.configure(
                         text=f"Probleme rencontre, nouvel essai ({a}/{max_retries})...",
                         fg="#e67e22"))
-                    self.root.after(0, lambda: self.progress_label.configure(
-                        text="Veuillez patienter..."))
-                    time.sleep(2)
+                    self.root.after(0, lambda w=wait: self.progress_label.configure(
+                        text=f"Attente {w}s avant de reessayer..."))
+                    time.sleep(wait)
 
                 if style == "polaroid":
                     result = self.generate_polaroid(char_idx)
@@ -407,7 +405,7 @@ class SelfieApp:
                 error_msg = str(e)
                 print(f"[ERREUR] Tentative {attempt}/{max_retries}: {error_msg}")
                 if attempt == max_retries:
-                    self.root.after(0, lambda: self.show_error_with_options(error_msg))
+                    self.root.after(0, lambda msg=error_msg: self.show_error_with_options(msg))
 
     def generate_polaroid(self, char_idx):
         char_img = self.character_images[char_idx].copy()
@@ -465,14 +463,18 @@ class SelfieApp:
         if not GEMINI_API_KEY or GEMINI_API_KEY == "VOTRE_CLE_API_ICI":
             raise Exception("Cle API Gemini non configuree. Faites: export GEMINI_API_KEY=votre_cle")
 
-        char_img = self.character_images[char_idx]
+        # Redimensionner les images avant encodage pour reduire la taille de la requete
+        char_img = self.character_images[char_idx].copy()
+        char_img.thumbnail((768, 768), Image.LANCZOS)
         char_buffer = io.BytesIO()
-        char_img.save(char_buffer, format="PNG")
+        char_img.save(char_buffer, format="JPEG", quality=85)
         char_b64 = base64.b64encode(char_buffer.getvalue()).decode("utf-8")
         print(f"[GEMINI] Image personnage: {len(char_b64)} chars")
 
+        user_img = self.captured_photo.copy()
+        user_img.thumbnail((768, 768), Image.LANCZOS)
         user_buffer = io.BytesIO()
-        self.captured_photo.save(user_buffer, format="JPEG", quality=85)
+        user_img.save(user_buffer, format="JPEG", quality=85)
         user_b64 = base64.b64encode(user_buffer.getvalue()).decode("utf-8")
         print(f"[GEMINI] Photo visiteur: {len(user_b64)} chars")
 
@@ -482,7 +484,7 @@ class SelfieApp:
         request_body = {
             "contents": [{
                 "parts": [
-                    {"inline_data": {"mime_type": "image/png", "data": char_b64}},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": char_b64}},
                     {"inline_data": {"mime_type": "image/jpeg", "data": user_b64}},
                     {"text": prompt}
                 ]
