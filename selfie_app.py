@@ -19,6 +19,17 @@ import io
 from datetime import datetime
 import time
 import qrcode
+import logging
+
+# Configuration du log fichier
+LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "selfie_debug.log")
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S"
+)
+log = logging.getLogger(__name__)
 
 # Configuration
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
@@ -381,11 +392,13 @@ class SelfieApp:
         style = self.selected_style.get()
         char_idx = self.current_character_index
         max_retries = 3
+        log.info(f"=== NOUVELLE GENERATION: style={style}, personnage={CHARACTERS[char_idx]['name']} ===")
 
         for attempt in range(1, max_retries + 1):
             try:
                 if attempt > 1:
                     wait = 2 ** attempt  # backoff exponentiel: 4s, 8s
+                    log.info(f"Tentative {attempt}/{max_retries}, attente {wait}s...")
                     self.root.after(0, lambda a=attempt, w=wait: self.loading_label.configure(
                         text=f"Probleme rencontre, nouvel essai ({a}/{max_retries})...",
                         fg="#e67e22"))
@@ -398,13 +411,18 @@ class SelfieApp:
                 else:
                     result = self.generate_with_gemini(char_idx, style)
 
+                log.info("Generation reussie!")
                 self.result_image = result
                 self.root.after(0, self.show_result)
                 return
             except Exception as e:
+                import traceback
                 error_msg = str(e)
+                log.error(f"Tentative {attempt}/{max_retries} ECHEC: {error_msg}")
+                log.error(traceback.format_exc())
                 print(f"[ERREUR] Tentative {attempt}/{max_retries}: {error_msg}")
                 if attempt == max_retries:
+                    log.error("Toutes les tentatives ont echoue.")
                     self.root.after(0, lambda msg=error_msg: self.show_error_with_options(msg))
 
     def generate_polaroid(self, char_idx):
@@ -458,7 +476,7 @@ class SelfieApp:
 
     def generate_with_gemini(self, char_idx, style):
         character = CHARACTERS[char_idx]
-        print(f"[GEMINI] Debut - personnage: {character['name']}, style: {style}")
+        log.info(f"Debut Gemini - personnage: {character['name']}, style: {style}")
 
         if not GEMINI_API_KEY or GEMINI_API_KEY == "VOTRE_CLE_API_ICI":
             raise Exception("Cle API Gemini non configuree. Faites: export GEMINI_API_KEY=votre_cle")
@@ -469,17 +487,17 @@ class SelfieApp:
         char_buffer = io.BytesIO()
         char_img.save(char_buffer, format="JPEG", quality=85)
         char_b64 = base64.b64encode(char_buffer.getvalue()).decode("utf-8")
-        print(f"[GEMINI] Image personnage: {len(char_b64)} chars")
+        log.info(f"Image personnage: {len(char_b64)} chars")
 
         user_img = self.captured_photo.copy()
         user_img.thumbnail((768, 768), Image.LANCZOS)
         user_buffer = io.BytesIO()
         user_img.save(user_buffer, format="JPEG", quality=85)
         user_b64 = base64.b64encode(user_buffer.getvalue()).decode("utf-8")
-        print(f"[GEMINI] Photo visiteur: {len(user_b64)} chars")
+        log.info(f"Photo visiteur: {len(user_b64)} chars")
 
         prompt = PROMPTS[style].format(name=character["name"])
-        print(f"[GEMINI] Envoi requete...")
+        log.info(f"Envoi requete vers Gemini...")
 
         request_body = {
             "contents": [{
@@ -503,36 +521,42 @@ class SelfieApp:
                                      headers={"Content-Type": "application/json"}, method="POST")
 
         try:
+            log.info("Connexion HTTP en cours (timeout=120s)...")
             with urllib.request.urlopen(req, timeout=120) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                print(f"[GEMINI] Reponse recue - cles: {list(result.keys())}")
+                raw = response.read()
+                log.info(f"Reponse recue: {len(raw)} bytes")
+                result = json.loads(raw.decode("utf-8"))
+                log.info(f"Cles reponse: {list(result.keys())}")
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8")
-            print(f"[GEMINI] ERREUR HTTP {e.code}: {error_body[:300]}")
-            raise Exception(f"Erreur Gemini HTTP {e.code}: {error_body[:80]}")
+            log.error(f"ERREUR HTTP {e.code}: {error_body[:500]}")
+            raise Exception(f"Erreur Gemini HTTP {e.code}: {error_body[:120]}")
         except urllib.error.URLError as e:
-            print(f"[GEMINI] ERREUR CONNEXION: {e.reason}")
+            log.error(f"ERREUR CONNEXION: {e.reason}")
             raise Exception(f"Erreur connexion: {e.reason}")
+        except Exception as e:
+            log.error(f"ERREUR INATTENDUE: {e}")
+            raise
 
         candidates = result.get("candidates", [])
         if not candidates:
             feedback = result.get("promptFeedback", {})
             block_reason = feedback.get("blockReason", "inconnu")
-            print(f"[GEMINI] AUCUN CANDIDAT - feedback: {feedback}")
+            log.error(f"AUCUN CANDIDAT - feedback: {feedback}")
             raise Exception(f"Bloque par Gemini: {block_reason}")
 
         parts = candidates[0].get("content", {}).get("parts", [])
-        print(f"[GEMINI] {len(parts)} parts recues")
+        log.info(f"{len(parts)} parts recues")
         for i, part in enumerate(parts):
             if "inlineData" in part:
-                print(f"[GEMINI] Part {i}: IMAGE trouvee")
+                log.info(f"Part {i}: IMAGE trouvee")
                 img_data = base64.b64decode(part["inlineData"]["data"])
                 return Image.open(io.BytesIO(img_data))
             elif "text" in part:
-                print(f"[GEMINI] Part {i}: texte: {part['text'][:80]}")
+                log.info(f"Part {i}: texte: {part['text'][:120]}")
 
         finish_reason = candidates[0].get("finishReason", "inconnu")
-        print(f"[GEMINI] PAS D IMAGE - finishReason: {finish_reason}")
+        log.error(f"PAS D IMAGE - finishReason: {finish_reason}, candidat complet: {candidates[0]}")
         raise Exception(f"Pas d image generee (raison: {finish_reason})")
 
     def generate_qr_code(self):
