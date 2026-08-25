@@ -55,26 +55,21 @@ CHARACTERS = [
 
 PROMPTS = {
     "realiste": (
-        "Two photos provided. "
-        "Photo 1: Star Wars character {name}. "
-        "Photo 2: a visitor (real person). "
-        "Generate a photorealistic cinematic image of both people side by side, posing together. "
-        "Visitor (Photo 2): preserve face, hair, glasses, beard, skin tone exactly. "
-        "Dress visitor as an Imperial Stormtrooper in white armor, helmet held under one arm, face fully visible. "
-        "Character (Photo 1): keep appearance exactly as shown. "
-        "Both same height, looking at camera. Visitor on left, character on right. "
-        "Background: Imperial Star Destroyer hangar, grey panels, blue-white sci-fi lighting. "
+        "Create a single photorealistic cinematic image of two characters standing side by side. "
+        "Character A comes from Photo 1: use this Star Wars character named {name} exactly as shown. "
+        "Character B comes from Photo 2: recreate this person exactly - same face, hair, skin tone, glasses, beard. "
+        "Character B is wearing Imperial Stormtrooper white armor with helmet held under one arm, face fully visible. "
+        "Both characters same height, looking at camera, visitor on left, character on right. "
+        "Background: Imperial Star Destroyer hangar, grey panels, blue-white lighting. "
         "Style: cinematic, sharp, movie-quality."
     ),
     "cartoon": (
-        "Two photos provided. "
-        "Photo 1: Star Wars character {name}. "
-        "Photo 2: a visitor (real person). "
-        "Generate a single image in Pixar/Disney 3D animation style. Everything must be cartoon - no photorealism. "
-        "Scene: character (Photo 1) holds a phone taking a selfie with the visitor (Photo 2), arm extended with phone visible. "
-        "Visitor (Photo 2): Pixar 3D style, faithfully preserve hair color, hairstyle, baldness, facial hair, glasses, skin tone, eye color. "
-        "Dress visitor as Stormtrooper, helmet held under arm, face visible. Flattering but recognizable. "
-        "Character (Photo 1): same Pixar style, holding the phone. Both same height, visitor left, character right. "
+        "Create a single Pixar/Disney 3D animated image. Everything must be cartoon style, zero photorealism. "
+        "Character A comes from Photo 1: convert this Star Wars character named {name} to Pixar 3D style. "
+        "Character B comes from Photo 2: convert this person to Pixar 3D style, faithfully preserving hair color, hairstyle, baldness, facial hair, glasses, skin tone. They must be immediately recognizable. "
+        "Character B wears Stormtrooper white armor with helmet held under arm, face visible. "
+        "Scene: Character A holds a phone taking a selfie with Character B, arm extended with phone visible at top. "
+        "Both same height, Character B on left, Character A on right, both smiling. "
         "Background: Imperial Star Destroyer interior, Pixar style. "
         "Style: exaggerated Pixar proportions, big heads, big eyes, vibrant colors, zero photorealism."
     ),
