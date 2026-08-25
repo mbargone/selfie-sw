@@ -45,6 +45,8 @@ OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
 CHARACTERS = [
     {"name": "Luke Skywalker", "file": "luke.png", "description": "a young blond man in a white tunic and black pants, hero adventurer look"},
     {"name": "Han Solo", "file": "Han.png", "description": "a man in a white shirt open at collar, black vest, dark pants, charming rogue look"},
+    {"name": "Leia", "file": "Leia.png", "description": "a young woman with brown hair in round buns on the sides of her head, wearing a long white dress, princess look"},
+    {"name": "Amydala", "file": "amydala.png", "description": "a young woman in an elaborate royal outfit with ornate headdress and heavy make-up, regal queen look"},
     {"name": "Chewbacca", "file": "Chewy.png", "description": "a very tall furry creature covered in brown fur, gentle giant"},
     {"name": "Dark Vador", "file": "Darth Vader.png", "description": "a tall menacing figure in full black armor with a black helmet and cape"},
     {"name": "Yoda", "file": "yoda.png", "description": "a small green creature with big ears, wise elder, walks with a cane"},
