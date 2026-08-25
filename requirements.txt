@@ -1,0 +1,4 @@
+opencv-python
+Pillow
+qrcode
+boto3
